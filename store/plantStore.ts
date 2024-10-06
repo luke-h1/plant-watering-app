@@ -14,7 +14,15 @@ export interface Plant {
 interface PlantState {
   nextId: number;
   plants: Plant[];
-  addPlant: (input: Plant) => void;
+  addPlant: ({
+    name,
+    wateringFrequencyDays,
+    imageUri,
+  }: {
+    name: string;
+    wateringFrequencyDays: number;
+    imageUri?: string;
+  }) => void;
   removePlant: (id: string) => void;
   waterPlant: (id: string) => void;
 }
@@ -24,12 +32,12 @@ const usePlantStore = create(
     (set) => ({
       plants: [],
       nextId: 1,
-      addPlant: async (input) => {
-        const savedImageUri = `${FileSystem.documentDirectory}${new Date().getTime()}-${input.imageUri?.split("/").slice(-1)[0]}`;
+      addPlant: async ({ name, wateringFrequencyDays, imageUri }) => {
+        const savedImageUri = `${FileSystem.documentDirectory}${new Date().getTime()}-${imageUri?.split("/").slice(-1)[0]}`;
 
-        if (input.imageUri) {
+        if (imageUri) {
           await FileSystem.copyAsync({
-            from: input.imageUri,
+            from: imageUri,
             to: savedImageUri,
           });
         }
@@ -40,9 +48,10 @@ const usePlantStore = create(
             nextId: state.nextId + 1,
             plants: [
               {
-                ...input,
                 id: String(state.nextId),
-                imageUri: input.imageUri ? savedImageUri : undefined,
+                imageUri: imageUri ? savedImageUri : undefined,
+                name,
+                wateringFrequencyDays,
               },
               ...state.plants,
             ],
